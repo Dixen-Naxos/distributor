@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:distributor/dto/user.dart';
 import 'package:distributor/product.dart';
 import 'package:distributor/service/service_api.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,23 +22,36 @@ class Shop extends StatefulWidget {
 class _ShopState extends State<Shop> {
   String textHolder = "";
   Distributor distributor = Distributor("", "", "", <ProductModel>[]);
+  User user = User("", "", "", 0, "", "", false);
 
   @override
   Widget build(BuildContext context) {
 
     final service = ServiceAPI();
     service.getDistributor().then((value) => distributorResponse(value));
+    service.getUser(jsonDecode(widget.tag)["id"]).then((value) => userResponse(value));
 
     return Scaffold(
       appBar: AppBar(
         title: Text("Shop"),
+        actions: [
+          Center(
+            child: Padding(
+              padding: EdgeInsets.only(right: 16.0),
+              child: Text("Coins : " + user.coins.toString(), style: TextStyle(fontSize: 16),),
+            ),
+          )
+        ],
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(child: Text('List Products'), onPressed: moveToProductList),
-            Text(textHolder),
+            Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(textHolder, style: TextStyle(fontSize: 32)),
+            ),
             Expanded(
               child: GridButton(
                 onPressed: (dynamic value) {
@@ -77,7 +93,12 @@ class _ShopState extends State<Shop> {
 
   void distributorResponse(Distributor distributor) {
     this.distributor = distributor;
-    print(distributor.products.toString());
+  }
+
+  void userResponse(User user) {
+    setState(() {
+      this.user = user;
+    });
   }
 
   void gridTap(String value) {
@@ -88,14 +109,23 @@ class _ShopState extends State<Shop> {
     } else if (value == "Enter") {
       if (distributor.products.length <= int.parse(textHolder)) return;
 
+      ProductModel productModel = distributor.products[int.parse(textHolder)];
+      if (productModel.price > user.coins) {
+        return;
+      }
 
+      final service = ServiceAPI();
+      service.buyProduct(jsonDecode(widget.tag)["id"],
+          distributor.products[int.parse(textHolder)].id).then((value) =>
+          Navigator.pop(context));
 
       setState(() {
         textHolder = "";
       });
     } else {
       setState(() {
-        textHolder += value;
+        if (textHolder.length < 2)
+          textHolder += value;
       });
     }
   }

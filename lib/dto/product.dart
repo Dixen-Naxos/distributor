@@ -11,4 +11,6 @@ class ProductModel {
   factory ProductModel.fromJson(dynamic json) {
     return ProductModel(json["_id"], json["name"], json["price"]);
   }
+
+  String get id => _id;
 }

@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -70,6 +71,8 @@ class _MyHomePageState extends State<MyHomePage> {
         Map records = cachedMessage['records'][0];
         Uint8List payload = records['payload'];
         String payloadAsString = String.fromCharCodes(payload);
+        payloadAsString = payloadAsString.substring(3, payloadAsString.length);
+        print(payloadAsString);
         Navigator.push(context, MaterialPageRoute(builder: (context) => Shop(tag:payloadAsString)));
       },
     );
