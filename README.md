@@ -18,9 +18,15 @@ samples, guidance on mobile development, and a full API reference.
 Groupe :
 
 ANCELOT Owen
+
 VANNIER Timoté
+
 BLASON Lucas
+
 DAILLY Armand
+
 FUENTES Jonathan
+
 JOURDAIN Arnaud
+
 LOUNI Sid Ahmed
