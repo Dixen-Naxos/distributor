@@ -1,6 +1,6 @@
 # distributor
 
-A new Flutter project.
+Distributor
 
 ## Getting Started
 

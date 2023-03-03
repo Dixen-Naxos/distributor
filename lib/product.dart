@@ -33,9 +33,9 @@ class _ProductState extends State<Product> {
             Tuple item = widget.productsMap[index];
 
             return ListTile(
-              leading: Container(
-                height: double.infinity,
-                child: Text(index.toString()),
+              leading: Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Text(index.toString(), style: TextStyle(fontSize: 20),),
               ),
               title: Text(item.productModel.name + "     x " + item.count.toString()),
               subtitle: Text((item == null) ? "": item.productModel.price.toString() + " points"),
