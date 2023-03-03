@@ -4,8 +4,12 @@ import 'package:distributor/service/service_api.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'dto/tuple.dart';
+
 class Product extends StatefulWidget {
-  const Product({Key? key}) : super(key: key);
+  List<Tuple> productsMap;
+
+  Product({Key? key, required this.productsMap}) : super(key: key);
 
   @override
   State<Product> createState() => _ProductState();
@@ -14,20 +18,37 @@ class Product extends StatefulWidget {
 
 class _ProductState extends State<Product> {
 
-  Distributor distributor = Distributor("", "", "", <ProductModel>[]);
-
   @override
   Widget build(BuildContext context) {
-
-    final service = ServiceAPI();
-    service.getDistributor().then((value) => distributorResponse(value));
 
     return Scaffold(
       appBar: AppBar(
         title: Text("Products"),
       ),
       body: Center(
-        child: FutureBuilder(
+        child: ListView.builder(
+          itemCount: widget.productsMap.length,
+          itemBuilder: (context, index) {
+
+            Tuple item = widget.productsMap[index];
+
+            return ListTile(
+              leading: Container(
+                height: double.infinity,
+                child: Text(index.toString()),
+              ),
+              title: Text(item.productModel.name + "     x " + item.count.toString()),
+              subtitle: Text((item == null) ? "": item.productModel.price.toString() + " points"),
+            );
+          },
+        )
+      ),
+    );
+  }
+}
+
+/*
+FutureBuilder(
           future: service.getDistributor(),
           builder: (BuildContext context, AsyncSnapshot<Distributor> distributor) {
             if (distributor.hasData) {
@@ -50,12 +71,4 @@ class _ProductState extends State<Product> {
             }
           },
         )
-      ),
-    );
-  }
-
-  void distributorResponse(Distributor distributor) {
-    this.distributor = distributor;
-    print(distributor.products.toString());
-  }
-}
+ */

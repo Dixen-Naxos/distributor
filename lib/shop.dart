@@ -1,8 +1,14 @@
+import 'dart:collection';
 import 'dart:convert';
 
+import 'package:distributor/dto/tuple.dart';
 import 'package:distributor/dto/user.dart';
+import 'package:distributor/popup.dart';
+import 'package:distributor/popup_no_coins.dart';
+import 'package:distributor/popup_not_exist.dart';
 import 'package:distributor/product.dart';
 import 'package:distributor/service/service_api.dart';
+import 'package:distributor/submit_notification.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_grid_button/flutter_grid_button.dart';
@@ -23,6 +29,7 @@ class _ShopState extends State<Shop> {
   String textHolder = "";
   Distributor distributor = Distributor("", "", "", <ProductModel>[]);
   User user = User("", "", "", 0, "", "", false);
+  List<Tuple> productsMap = [];
 
   @override
   Widget build(BuildContext context) {
@@ -88,11 +95,26 @@ class _ShopState extends State<Shop> {
   }
 
   void moveToProductList() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => Product()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Product(productsMap: productsMap,)));
   }
 
   void distributorResponse(Distributor distributor) {
     this.distributor = distributor;
+    bool found = false;
+    productsMap = [];
+    for (int i = 0; i < distributor.products.length; i++) {
+      found = false;
+      for (int j = 0; j < productsMap.length; j++) {
+        if (productsMap[j].productModel.id == distributor.products[i].id) {
+          found = true;
+          productsMap[j].count += 1;
+          break;
+        }
+      }
+      if (!found) {
+        productsMap.add(Tuple(1, distributor.products[i]));
+      }
+    }
   }
 
   void userResponse(User user) {
@@ -107,17 +129,19 @@ class _ShopState extends State<Shop> {
         textHolder = textHolder.substring(0, textHolder.length - 1);
       });
     } else if (value == "Enter") {
-      if (distributor.products.length <= int.parse(textHolder)) return;
+      if (productsMap.length <= int.parse(textHolder)) {
+        popupNotExist(context);
+        return;
+      }
 
-      ProductModel productModel = distributor.products[int.parse(textHolder)];
+      ProductModel productModel = productsMap[int.parse(textHolder)].productModel;
       if (productModel.price > user.coins) {
+        popupNoCoins(context);
         return;
       }
 
       final service = ServiceAPI();
-      service.buyProduct(jsonDecode(widget.tag)["id"],
-          distributor.products[int.parse(textHolder)].id).then((value) =>
-          Navigator.pop(context));
+      service.buyProduct(jsonDecode(widget.tag)["id"], productModel.id).then((value) => popupSuccess(context));
 
       setState(() {
         textHolder = "";
@@ -128,5 +152,74 @@ class _ShopState extends State<Shop> {
           textHolder += value;
       });
     }
+  }
+
+  void popupSuccess(BuildContext context) async {
+    final result = await showDialog(
+      context: context,
+      builder: (BuildContext contextDialog) {
+        return Center(
+          child: Wrap(
+            children: [
+              AlertDialog(
+                content: NotificationListener<SubmitNotification<String>>(
+                  child: const PopUpSuccess(),
+                  onNotification: (notification) {
+                    Navigator.of(context).pop(notification.value);
+                    return true;
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void popupNotExist(BuildContext context) async {
+    final result = await showDialog(
+      context: context,
+      builder: (BuildContext contextDialog) {
+        return Center(
+          child: Wrap(
+            children: [
+              AlertDialog(
+                content: NotificationListener<SubmitNotification<String>>(
+                  child: const PopUpNotExist(),
+                  onNotification: (notification) {
+                    Navigator.of(context).pop(notification.value);
+                    return true;
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void popupNoCoins(BuildContext context) async {
+    final result = await showDialog(
+      context: context,
+      builder: (BuildContext contextDialog) {
+        return Center(
+          child: Wrap(
+            children: [
+              AlertDialog(
+                content: NotificationListener<SubmitNotification<String>>(
+                  child: const PopUpNoCoins(),
+                  onNotification: (notification) {
+                    Navigator.of(context).pop(notification.value);
+                    return true;
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
